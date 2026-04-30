@@ -19,8 +19,7 @@ async function addToPorfolio(req,res){
             })
             savedTrades.push(stock);
         }else{
-            console.log('SELL TRADE DETECTED:', trade.symbol, trade.quantity);
-            console.log('About to save to completedTrades');
+            
     
             const individualBuyPrice=[];
             const individualQuantity=[];
@@ -55,11 +54,12 @@ async function addToPorfolio(req,res){
                         await portfolioModel.findByIdAndDelete(id);
                     }
                     else{
-                        individualQuantity.push(tempQuantity);
-                        tempQuantity=0;
+                        individualQuantity.push(tempQuantity);  
                         individualBuyPrice.push(soldStock[i].buyPrice);
                         individualDate.push(soldStock[i].date);
-                        await portfolioModel.findByIdAndUpdate(id,{quantity:tempQuantity});
+                        const remainingQty = soldStock[i].quantity - tempQuantity;  
+                        await portfolioModel.findByIdAndUpdate(id, {quantity: remainingQty});  
+                        tempQuantity = 0;  
                     }
                 }
             }
@@ -76,7 +76,7 @@ async function addToPorfolio(req,res){
                 brokerCharge
             })
             savedTrades.push(stock);
-            console.log('Saved to completedTrades:', stock);
+            
         }
     }
     res.status(201).json({
