@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEPSE SMS Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 0.9em;
+            resize: vertical;
+            min-height: 150px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #5568d3;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .portfolio-section {
+            grid-column: 1 / -1;
+        }
+
+        .portfolio-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stock-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .stock-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .stock-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .stock-info p {
+            margin: 5px 0;
+        }
+
+        .stock-info strong {
+            color: #333;
+        }
+
+        .breakdown {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #ddd;
+            font-size: 0.85em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
+
+        thead {
+            background: #f8f9fa;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            font-weight: 600;
+            color: #333;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .positive {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .negative {
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        .loading {
+            text-align: center;
+            color: #667eea;
+            padding: 20px;
+        }
+
+        .empty {
+            text-align: center;
+            color: #999;
+            padding: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .portfolio-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📈 NEPSE SMS Tracker</h1>
+            <p>Track your stock trades automatically from broker SMS</p>
+        </header>
+
+        <div class="content">
+            <div class="card">
+                <h2>Add Trade</h2>
+                <div class="form-group">
+                    <label for="smsText">Paste Broker SMS:</label>
+                    <textarea id="smsText" placeholder="Paste your broker SMS here..."></textarea>
+                </div>
+                <button onclick="submitTrade()">Submit Trade</button>
+                <div id="submitMessage" class="message"></div>
+            </div>
+
+            <div class="card">
+                <h2>Quick Actions</h2>
+                <button onclick="loadPortfolio()" style="margin-bottom: 10px;">Refresh Holdings</button>
+                <button onclick="loadCompletedTrades()" style="margin-bottom: 10px;">Refresh Completed Trades</button>
+                <button onclick="clearForm()" style="background: #6c757d;">Clear SMS Input</button>
+                <p style="color: #999; font-size: 0.9em; margin-top: 15px;">Use these buttons to refresh data from the server.</p>
+            </div>
+        </div>
+
+        <div class="card portfolio-section">
+            <h2>Current Holdings</h2>
+            <div id="portfolioContainer" class="loading">Loading...</div>
+        </div>
+
+        <div class="card">
+            <h2>Completed Trades</h2>
+            <div id="completedTradesContainer" class="loading">Loading...</div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api';
+
+        async function submitTrade() {
+            const smsText = document.getElementById('smsText').value.trim();
+            const messageDiv = document.getElementById('submitMessage');
+
+            if (!smsText) {
+                showMessage('Please paste an SMS', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/trades`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ sms: smsText })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage('Trade added successfully!', 'success');
+                    document.getElementById('smsText').value = '';
+                    loadPortfolio();
+                    loadCompletedTrades();
+                } else {
+                    showMessage('Error: ' + data.message, 'error');
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        }
+
+        async function loadPortfolio() {
+            const container = document.getElementById('portfolioContainer');
+            container.innerHTML = '<div class="loading">Loading...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE}/portfolio`);
+                const data = await response.json();
+
+                if (data.portfolio && data.portfolio.length > 0) {
+                    let html = '<div class="portfolio-grid">';
+                    
+                    data.portfolio.forEach(stock => {
+                        html += `
+                            <div class="stock-card">
+                                <h3>${stock.symbol}</h3>
+                                <div class="stock-info">
+                                    <p><strong>Quantity:</strong> ${stock.totalQuantity}</p>
+                                    <p><strong>Avg Price:</strong> Rs. ${stock.averagePrice.toFixed(2)}</p>
+                                    <p><strong>Total Cost:</strong> Rs. ${(stock.totalQuantity * stock.averagePrice).toFixed(2)}</p>
+                                </div>
+                                <div class="breakdown">
+                                    <strong>Purchase Breakdown:</strong>
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>Qty</th>
+                                                <th>Price</th>
+                                                <th>Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${stock.breakdown.map(item => `
+                                                <tr>
+                                                    <td>${item.quantity}</td>
+                                                    <td>Rs. ${item.buyPrice}</td>
+                                                    <td>${new Date(item.date).toLocaleDateString()}</td>
+                                                </tr>
+                                            `).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    html += '</div>';
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = '<div class="empty">No holdings yet. Add a buy trade to get started.</div>';
+                }
+            } catch (error) {
+                container.innerHTML = '<div class="empty">Error loading portfolio: ' + error.message + '</div>';
+            }
+        }
+
+        async function loadCompletedTrades() {
+            const container = document.getElementById('completedTradesContainer');
+            container.innerHTML = '<div class="loading">Loading...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE}/soldStocks`);
+                const data = await response.json();
+
+                if (data.trades && data.trades.length > 0) {
+                    let html = '<table><thead><tr><th>Symbol</th><th>Qty</th><th>Buy Price</th><th>Sell Price</th><th>Commission</th><th>Tax</th><th>Net Profit</th><th>Buy Date</th><th>Sell Date</th></tr></thead><tbody>';
+                    
+                    data.trades.forEach(trade => {
+                        const profitClass = trade.netProfit >= 0 ? 'positive' : 'negative';
+                        const buyDate = Array.isArray(trade.buyDate) 
+                            ? new Date(trade.buyDate[0]).toLocaleDateString() 
+                            : new Date(trade.buyDate).toLocaleDateString();
+                        const sellDate = new Date(trade.sellDate).toLocaleDateString();
+                        
+                        html += `
+                            <tr>
+                                <td><strong>${trade.symbol}</strong></td>
+                                <td>${trade.quantity}</td>
+                                <td>Rs. ${Array.isArray(trade.buyPrice) ? trade.buyPrice[0] : trade.buyPrice}</td>
+                                <td>Rs. ${trade.sellPrice}</td>
+                                <td>Rs. ${trade.brokerCharge.toFixed(2)}</td>
+                                <td>Rs. ${trade.capitalGainsTax.toFixed(2)}</td>
+                                <td class="${profitClass}">Rs. ${trade.netProfit.toFixed(2)}</td>
+                                <td>${buyDate}</td>
+                                <td>${sellDate}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += '</tbody></table>';
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = '<div class="empty">No completed trades yet.</div>';
+                }
+            } catch (error) {
+                container.innerHTML = '<div class="empty">Error loading completed trades: ' + error.message + '</div>';
+            }
+        }
+
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('submitMessage');
+            messageDiv.textContent = text;
+            messageDiv.className = 'message ' + type;
+            setTimeout(() => {
+                messageDiv.className = 'message';
+            }, 3000);
+        }
+
+        function clearForm() {
+            document.getElementById('smsText').value = '';
+        }
+
+        // Load data on page load
+        window.addEventListener('load', () => {
+            loadPortfolio();
+            loadCompletedTrades();
+        });
+    </script>
+</body>
+</html>

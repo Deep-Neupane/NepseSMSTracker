@@ -1,0 +1,24 @@
+BNo.16 Purchased on 2026-03-10 20240722565(SMB 10@1977.00) - BAmt.19869.14(Please transfer Amount to our PRVU Ac/No 1090096863700019 Putalisadak Branch by tomorrow)
+
+BNo.16 Purchased on 2025-11-10 20240722565(GBIME 65@228.40,MNBBL 100@350.00) - BAmt.50082.92(Please transfer Amount to our PRVU Ac/No 1090096863700019 Putalisadak Branch by tomorrow)
+
+
+
+if(trades.type==="buy"){
+        const stock = await portfolioModel.create({
+            symbol:trades.symbol,
+            quantity:trades.quantity,
+            buyPrice:trades.price,
+            date:trades.date
+    })
+
+    res.status(201).json({
+        message:"stock added successfully",
+        stock:{
+            symbol:stock.symbol,
+            quantity:stock.quantity,
+            buyPrice:stock.buyPrice,
+            date:stock.date
+        }
+    })
+    }
