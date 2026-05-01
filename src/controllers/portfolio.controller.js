@@ -83,8 +83,8 @@ async function addToPorfolio(req,res){
             message:"trades added successfully",
         })
     }catch(err){
-        console.log('ERROR in addToPorfolio:', err);
-        res.status(500).json({ error: err.message })
+        console.log('ERROR in addToPorfolio:', err.message);
+        res.status(400).json({ error: err.message })
     }
 
     
@@ -93,37 +93,42 @@ async function addToPorfolio(req,res){
 }
 
 async function getPortfolio(req,res){
-    
-    const grouped = {};
-    const portfolio = await portfolioModel.find();
-    if(portfolio.length===0){
-        res.status(201).json({
-        message:"empty portfolio",        
-    })
-    }else{
-        for(let stock of portfolio){
-            if(grouped[stock.symbol]){
-                const prevTotalQuantity= grouped[stock.symbol].totalQuantity;
-                grouped[stock.symbol].totalQuantity+=stock.quantity;
-                grouped[stock.symbol].breakdown.push(stock);
-                grouped[stock.symbol].averagePrice=((grouped[stock.symbol].averagePrice*prevTotalQuantity)+(stock.buyPrice*stock.quantity))/grouped[stock.symbol].totalQuantity
-            }else{
-                grouped[stock.symbol]={
-                    symbol:stock.symbol,
-                    totalQuantity:stock.quantity,
-                    averagePrice:stock.buyPrice,
-                    breakdown:[stock]
+    try{
+        const grouped = {};
+        const portfolio = await portfolioModel.find();
+        if(portfolio.length===0){
+            res.status(201).json({
+            message:"empty portfolio",        
+        })
+        }else{
+            for(let stock of portfolio){
+                if(grouped[stock.symbol]){
+                    const prevTotalQuantity= grouped[stock.symbol].totalQuantity;
+                    grouped[stock.symbol].totalQuantity+=stock.quantity;
+                    grouped[stock.symbol].breakdown.push(stock);
+                    grouped[stock.symbol].averagePrice=((grouped[stock.symbol].averagePrice*prevTotalQuantity)+(stock.buyPrice*stock.quantity))/grouped[stock.symbol].totalQuantity
+                }else{
+                    grouped[stock.symbol]={
+                        symbol:stock.symbol,
+                        totalQuantity:stock.quantity,
+                        averagePrice:stock.buyPrice,
+                        breakdown:[stock]
+                    }
                 }
             }
-        }
 
-        const finalPortfolio=Object.values(grouped);
+            const finalPortfolio=Object.values(grouped);
 
-        res.status(200).json({
-        message:"portfolio fetched successfully",
-        portfolio:finalPortfolio,
-    })
+            res.status(200).json({
+            message:"portfolio fetched successfully",
+            portfolio:finalPortfolio,
+        })
     }
+    }catch(err){
+        console.log('Error in getPortfolio:', err.message);
+        res.status(500).json({ error: "Failed to fetch portfolio" });
+    }
+    
     
 }
 
