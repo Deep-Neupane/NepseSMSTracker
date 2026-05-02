@@ -315,13 +315,19 @@
                     let html = '<div class="portfolio-grid">';
                     
                     data.portfolio.forEach(stock => {
+                        const currentValue = stock.currentPrice ? stock.currentPrice * stock.totalQuantity : 0;
+                        const unrealizedGain = stock.currentPrice ? (stock.currentPrice - stock.averagePrice) * stock.totalQuantity : 0;
+                        const gainClass = unrealizedGain >= 0 ? 'positive' : 'negative';
                         html += `
                             <div class="stock-card">
                                 <h3>${stock.symbol}</h3>
                                 <div class="stock-info">
                                     <p><strong>Quantity:</strong> ${stock.totalQuantity}</p>
                                     <p><strong>Avg Price:</strong> Rs. ${stock.averagePrice.toFixed(2)}</p>
-                                    <p><strong>Total Cost:</strong> Rs. ${(stock.totalQuantity * stock.averagePrice).toFixed(2)}</p>
+                                    <p><strong>Current Price:</strong> Rs. ${stock.currentPrice ? stock.currentPrice.toFixed(2) : 'N/A'}</p>
+                                    <p><strong>Cost Basis:</strong> Rs. ${(stock.totalQuantity * stock.averagePrice).toFixed(2)}</p>
+                                    <p><strong>Current Value:</strong> Rs. ${currentValue.toFixed(2)}</p>
+                                    <p class="${gainClass}"><strong>Unrealized Gain:</strong> Rs. ${unrealizedGain.toFixed(2)}</p>
                                 </div>
                                 <div class="breakdown">
                                     <strong>Purchase Breakdown:</strong>

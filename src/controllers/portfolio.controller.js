@@ -2,6 +2,11 @@ const portfolioModel = require('../models/portfolio.model');
 const completedTradesModel = require("../models/completedTrades.model");
 const parseSMS= require('../services/smsParser');
 const nepseCalculations = require("../services/nepseCalculations");
+const {getCurrentPrice}=require("../services/scrape");
+
+
+const NodeCache=require('node-cache');
+const priceCache = new NodeCache({stdTTL:600});
 
 async function addToPorfolio(req,res){
     try{
@@ -118,6 +123,20 @@ async function getPortfolio(req,res){
             }
 
             const finalPortfolio=Object.values(grouped);
+
+            for(let stock of finalPortfolio){
+                try{
+                    let price = priceCache.get(stock.symbol);
+                    if(!price){
+                        price = await getCurrentPrice(stock.symbol);
+                        priceCache.set(stock.symbol, price);
+                    }
+                    stock.currentPrice = price;
+                    stock.unrealizedGain = (price - stock.averagePrice) * stock.totalQuantity;
+                }catch(err){
+                    console.log(`Failed to fetch ${stock.symbol}:`, err.message);
+                }
+            }
 
             res.status(200).json({
             message:"portfolio fetched successfully",
